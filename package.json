@@ -1,6 +1,6 @@
 {
-  "name": "oofem",
-  "displayName": "oofem-input-file",
+  "name": "oofem-vscode",
+  "displayName": "oofem vscode",
   "description": "",
   "version": "0.0.1",
   "engines": {
