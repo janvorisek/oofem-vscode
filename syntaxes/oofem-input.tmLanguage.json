@@ -69,7 +69,7 @@
         },
         "oofem_problems": {
             "name": "keyword",
-            "match": "^(?i)\\b(?:StaticStructural|adaptnlinearstatic|LinearStatic)\\b"
+            "match": "^(?i)\\b(?:StaticStructural|adaptnlinearstatic|LinearStatic|TransientTransport)\\b"
         },
         "oofem_dofmans": {
             "name": "keyword",
@@ -81,11 +81,11 @@
         },
         "oofem_materials": {
             "name": "keyword",
-            "match": "^(?i)\\b(?:IsoLE|MisesMat|idm1|con2dpm|latticedamage)\\b"
+            "match": "^(?i)\\b(?:IsoLE|MisesMat|idm1|con2dpm|latticedamage|isoheat)\\b"
         },
         "oofem_crosssections": {
             "name": "keyword",
-            "match": "^(?i)\\b(?:SimpleCS|latticecs)\\b"
+            "match": "^(?i)\\b(?:SimpleCS|latticecs|SimpleTransportCS)\\b"
         },
         "oofem_boundaryconditions": {
             "name": "keyword",
@@ -101,7 +101,7 @@
         },
         "common_params": {
             "name": "variable",
-            "match": "(?i)\\b(?:nip|name|dim|masterMask|polycoords|doftype|bodyloads|nsteps|nmodules|nlgeo|rtolf|rtolv|BoundaryLoads|controllmode|contextOutputStep|manrmsteps|vartype|minlim|maxlim|mindens|maxdens|meshpackage|defdens|stiffmode|equilmc|renumber|lstype|smtype|eetype|istype|maxiter|thick|width|area|Iy|Iz|Ik|beamShearCoeff|material|set|nodes|elementboundaries|elements|coords|elementedges|elementranges|refNode|d|E|n|tAlpha|sig0|omega_crit|a|e0|gf|damlaw|prescribedvalue|npoints|dofs|loadTimeFunction|Components|loadType|values|f\\(t\\)|t|bc|crossSect|mat)(?:\\b|\\s)"
+            "match": "(?i)\\b(?:nip|name|dim|masterMask|deltat|alpha|lumped|exportfields|polycoords|doftype|bodyloads|nsteps|nmodules|nlgeo|rtolf|rtolv|BoundaryLoads|controllmode|contextOutputStep|manrmsteps|vartype|minlim|maxlim|mindens|maxdens|meshpackage|defdens|stiffmode|equilmc|renumber|lstype|lsprecond|smtype|eetype|istype|maxiter|thick|thickness|k|c|width|area|Iy|Iz|Ik|beamShearCoeff|material|set|nodes|elementboundaries|elements|coords|elementedges|elementranges|refNode|d|E|n|tAlpha|sig0|omega_crit|a|e0|gf|damlaw|prescribedvalue|npoints|dofs|loadTimeFunction|Components|loadType|values|f\\(t\\)|t|bc|crossSect|mat)(?:\\b|\\s)"
         },
         "number": {
             "name": "constant.numeric",
