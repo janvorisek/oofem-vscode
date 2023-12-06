@@ -1,6 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { oofemKnownObjects } from './oofemKnownObjects';
+import { oofemParamTypes } from './oofemParamTypes';
 
 /** Code that is used to associate diagnostic entries with code actions. */
 export const EMOJI_MENTION = 'emoji_mention';
@@ -10,14 +12,14 @@ const EMOJI = 'coords';
 
 const COMMAND = 'code-actions-sample.command';
 
-function createDiagnostic(doc: vscode.TextDocument, lineOfText: vscode.TextLine, lineIndex: number): vscode.Diagnostic {
+function createDiagnostic(doc: vscode.TextDocument, lineOfText: vscode.TextLine, lineIndex: number, search: string, message: string): vscode.Diagnostic {
 	// find where in the line of that the 'emoji' is mentioned
-	const index = lineOfText.text.indexOf(EMOJI);
+	const index = lineOfText.text.indexOf(search);
 
 	// create range that represents, where in the document the word is
-	const range = new vscode.Range(lineIndex, index, lineIndex, index + EMOJI.length);
+	const range = new vscode.Range(lineIndex, index, lineIndex, index + search.length);
 
-	const diagnostic = new vscode.Diagnostic(range, "When you say 'emoji', do you want to find out more?",
+	const diagnostic = new vscode.Diagnostic(range, message,
 		vscode.DiagnosticSeverity.Error);
 	diagnostic.code = EMOJI_MENTION;
 	return diagnostic;
@@ -34,8 +36,86 @@ export function refreshDiagnostics(doc: vscode.TextDocument, emojiDiagnostics: v
 
 	for (let lineIndex = 0; lineIndex < doc.lineCount; lineIndex++) {
 		const lineOfText = doc.lineAt(lineIndex);
-		if (lineOfText.text.includes(EMOJI)) {
-			diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex));
+		const tokens = lineOfText.text.trim().split(/\s+/);
+
+		if (tokens.length === 0) continue;
+
+		const keyword = tokens[0].toLowerCase();
+
+		// If found match in our known objects
+		if (keyword in oofemKnownObjects) {
+			const oofemKO = oofemKnownObjects[keyword];
+			if (oofemKO.hasId) {
+				if (tokens.length < 2) {
+					diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[0], `${oofemKO.className} must have a numeric id.`));
+					continue;
+				}
+				else if ( !oofemParamTypes.in.validator(tokens[1])) {
+					diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[1] , `${oofemKO.className} must have a numeric id.`));
+					continue;
+				}
+
+				// Now find the known parameters
+				for (let p = 2; p < tokens.length; p++) {
+					const parname = tokens[p].toLowerCase();
+					const param = oofemKO.params.find(v => v.name.toLowerCase() === parname.toLowerCase());
+
+					if (param) {
+						if (param.type === "ra") {
+							// Check if ra length is specified
+							if (p + 1 >= tokens.length) {
+								diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[p], `${oofemKO.className} parameter '${param.name}' is a real array that requires specified length.`));
+								continue;
+							}
+
+							// Check if length is integer
+							if (!oofemParamTypes.in.validator(tokens[p + 1])) {
+								diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[p], `${oofemKO.className} parameter '${param.name}' requires requires valid length (integer).`));
+								continue;
+							}
+
+							// The supposed length
+							const len = parseInt(tokens[p + 1]);
+							
+							// Check if ra has the specified length
+							if (p + 1 + len >= tokens.length) {
+								
+								diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[p], `${oofemKO.className} parameter '${param.name}' has specified a length of ${len}. Not enough values provided.`));
+								continue;
+							}
+
+							// Check if ra is valid
+							const toCheck: string[] = []
+							for (let q = p + 1; q <= p + 1 + len; q++) toCheck.push(tokens[q]);
+							
+							if (!oofemParamTypes.ra.validator(toCheck.join(' '))) {
+								diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[p], `${oofemKO.className} parameter '${param.name}' expects ${len} numeric values.`));
+								continue;
+							}
+
+							// Check if ra has overflown the specified length
+							if (p + 1 + len + 1 < tokens.length && !isNaN(parseInt(tokens[p + 1 + len + 1]))) {
+
+								diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[p], `${oofemKO.className} parameter '${param.name}' has specified a length of ${len}. Provided more values than expected.`));
+								continue;
+							}
+						}
+						else if (param.type === "in") {
+							// Check if anything is specified
+							if (p + 1 >= tokens.length) {
+								diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[p], `${oofemKO.className} parameter '${param.name}' expects a value.`));
+								continue;
+							}
+
+							// Check if value is integer
+							if (!oofemParamTypes.in.validator(tokens[p + 1])) {
+								diagnostics.push(createDiagnostic(doc, lineOfText, lineIndex, tokens[p], `${oofemKO.className} parameter '${param.name}' expects its value to be an integer.`));
+								continue;
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
